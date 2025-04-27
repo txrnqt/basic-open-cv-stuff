@@ -4,10 +4,9 @@ import imutils
 import math
 
 #algae constants
-
-GREEN_LOWER = np.ndarray((30, 100, 50)) #est
-GREEN_UPPER = np.ndarray((85, 255, 255)) #est
-BALL_DIAMITER = 0.406 #in meters
+GREEN_LOWER = np.array([30, 100, 50]) #est
+GREEN_UPPER = np.array([85, 255, 255]) #est
+BALL_DIAMETER = 0.406 #in meters
 
 #camera constants
 FOCAL_LENGTH = 0 #TODO
@@ -19,18 +18,20 @@ cam.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
 #camera to robot
-CAMERA_HEIGHT = 0.0 #meters TODO
-CAMERA_ANGLE = 0.0 #radians TODO
+CAMERA_HEIGHT = 1.0 #meters TODO
+CAMERA_ANGLE = 1.0 #radians TODO
 CENTER_X = FRAME_WIDTH / 2
 CENTER_Y = FRAME_HEIGHT / 2
 
+
 class pose2D: 
-    x: float
-    y: float
-    theata: float
+    def __init__(self, x, y, theata):
+        x: float
+        y: float
+        theata: float
 
 while True:
-    ret, frame = cam.read()
+    ret, frame= cam.read()
     if not ret:
         print("no cam")
         break
@@ -60,7 +61,7 @@ while True:
         
         #x robot forward, y robot right
         if radius_px > 10:
-            distance = (BALL_DIAMITER * FOCAL_LENGTH) / (2.0 * radius_px)
+            distance = (BALL_DIAMETER * FOCAL_LENGTH) / (2.0 * radius_px)
             dx = (cx - CENTER_X)
             bearing = math.atan2(dx, FOCAL_LENGTH)
             X = distance * math.cos(bearing)
@@ -71,7 +72,7 @@ while True:
             target_pose = pose2D(x=X, y=Y, theta=theta)
             
             cv2.circle(frame, (int(cx), int(cy)), int(radius_px), (0,255,0), 2)
-            cv2.imshow("Frame", frame)
+            cv2.imshow("Mask", mask)
             if cv2.waitKey(1) == ord('q'):
                 break
         else:

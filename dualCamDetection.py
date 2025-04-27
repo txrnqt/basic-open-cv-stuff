@@ -2,22 +2,29 @@ import cv2;
 import numpy as np
 
 #camera constants
-cameraLeft = 0
-cameraRight = 1
+CAMERA_LEFT = 0
+CL_HEIGHT = 0
+CL_ANGLE = 0
+CL_X = 0
+CL_Y =0
+
+CAMERA_RIGHT = 1
+CR_HEIGHT = 0
+CR_ANGLE = 0
+CR_X = 0
+CR_Y =0
 
 #algae detection constants
-ALGAE_LOWER_HSV = np.array([00, 00, 00])
-ALGAE_HIGHER_HSV = np.array([00, 00, 00])
+GREEN_LOWER = np.array([30, 100, 50]) #est
+GREEN_UPPER = np.array([85, 255, 255]) #est
+BALL_DIAMETER = 0.406 #in meters
 ALGAE_MINIMUM_CONTURE = 0.0
 ALGAE_CONTURE_THRESHOLD = 0.0
 
-#stero constants
-window_size = 5
-min_disp = 0
-num_disp = 16*8
+
 
 def find_algae_colored_conture(hsv_image: np.ndarray) -> np.ndarray:
-    mask = cv2.inRange(hsv_image, ALGAE_LOWER_HSV, ALGAE_HIGHER_HSV)
+    mask = cv2.inRange(hsv_image, GREEN_LOWER, GREEN_UPPER)
     
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
@@ -36,10 +43,9 @@ def conture_is_algae(conture: np.ndarray) -> bool:
 
 
 def main ():
-    captureLeft = cv2.VideoCapture(cameraLeft)
-    captureRight = cv2.VideoCapture(cameraRight)
-    # capture.set(3, 640)
-    # capture.set(4, 480)
+    captureLeft = cv2.VideoCapture(CAMERA_LEFT)
+    captureRight = cv2.VideoCapture(CAMERA_RIGHT)
+
 
     while True:
         ret, frameLeft= captureLeft.read()
