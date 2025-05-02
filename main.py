@@ -1,26 +1,44 @@
+import os
 import math
-import cv2
+import ntcore
+import cv2 as cv
+import numpy as np
 from ultralytics import YOLO
 
-modle = YOLO("yolo-Weights/yolov8n.pt")
 
-classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
-              "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-              "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-              "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
-              "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
-              "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
-              "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
-              "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
-              "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-              "teddy bear", "hair drier", "toothbrush", "monkey"
-              ]
+# class pose3D: 
+#     def __init__(self, x, y, z, theata):
+#         x: float
+#         y: float
+#         z: float
+#         theata: float
 
-capture = cv2.VideoCapture(0)
+# inst = ntcore.NetworkTableInstance.getDefault()
+# table = inst.getTable("gamePeiceFind")
+# algaePose = table.getFloatArrayTopic("algaePose").publish(pose3D(0.0, 0.0, 0.0, 0.0))
+# isConnected = table.getIntegerTopic("isConnected").publish(1)
+# inst.startClient4("gamePeiceFind")
+# inst.setServerTeam(5572)
+
+modle = YOLO("yolo-Weights/epoch-69.pt")
+
+classNames = ["algae", "coral", "reef"]
+
+capture = cv.VideoCapture(0)
 capture.set(3, 640)
 capture.set(4, 480)
 
-while True:
+def calibrate():
+    root = os.getcwd()
+    paramPath = os.path.join(root, 'calibration.npx')
+    data = np.load(paramPath)
+    camMatrix = data['camMatrix']
+    distCoeff = data['distCoeff']
+    rvecs = data['rvecs']
+    tvecs = data['tvecs']
+    cv.calibrateCamera(cameraMatrix=camMatrix, distCoeffs=distCoeff, rvecs=rvecs, tvecs=tvecs)
+
+def findAlgae():
     ret, img= capture.read()
     results = modle(img, stream=True)
     
@@ -31,7 +49,7 @@ while True:
             x1, y1, x2, y2 = box.xyxy[0]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             
-            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
+            cv.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
 
             confidence = math.ceil((box.conf[0]*100))/100
             print("Confidence --->", confidence)
@@ -40,16 +58,16 @@ while True:
             print("Class name -->", classNames[cls])
             
             org = [x1, y1]
-            font = cv2.FONT_HERSHEY_SIMPLEX
+            font = cv.FONT_HERSHEY_SIMPLEX
             fontScale = 1
             color = (255, 0, 0)
             thickness = 2 
-
-            cv2.putText(img, classNames[cls], org, font, fontScale, color, thickness)
-    cv2.imshow('Webcam', img)
-    
-    if cv2.waitKey(1) == ord('q'):
-        break
-    
+            cv.putText(img, classNames[cls], org, font, fontScale, color, thickness)
+        cv.imshow('Webcam', img)
 capture.release()
-cv2.destroyAllWindows() 
+
+while True:
+    findAlgae()
+    
+    if cv.waitKey(1) == ord('q'):
+        break
